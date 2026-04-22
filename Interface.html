@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kata Portal - Valeo</title>
+  
+  <style>
+    /* =========================================
+       VARIÁVEIS E CONFIGURAÇÕES GERAIS
+       ========================================= */
+    :root {
+      --bg-body: #070e13;
+      --bg-side: #12181d;
+      --bg-card: #1e252a;
+      --green: #3de800;
+      --green-h: #34cc00;
+      --text: #ffffff;
+      --text-dim: #99aabb;
+      --border: #2a3339;
+      --danger: #f27166;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body { 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      background: var(--bg-body); 
+      color: var(--text); 
+      height: 100vh; 
+      overflow: hidden; 
+    }
+
+    /* =========================================
+       LAYOUT (CONTAINER E SIDEBAR)
+       ========================================= */
+    .container { display: flex; height: 100%; }
+
+    .sidebar { 
+      width: 260px; 
+      background: var(--bg-side); 
+      border-right: 1px solid var(--border); 
+      padding: 20px; 
+      display: flex; 
+      flex-direction: column; 
+    }
+
+    .logo-area { 
+      display: flex; 
+      align-items: center; 
+      gap: 10px; 
+      margin-bottom: 30px; 
+    }
+
+    .nav-btn { 
+      background: none; 
+      border: none; 
+      color: var(--text-dim); 
+      padding: 12px; 
+      text-align: left; 
+      cursor: pointer; 
+      font-weight: bold; 
+      border-radius: 6px; 
+      margin-bottom: 5px; 
+      transition: 0.2s; 
+      display: flex;
+      align-items: center;
+    }
+    
+    .nav-btn:hover { background: rgba(255,255,255,0.05); }
+    
+    .nav-btn.active { 
+      color: var(--green); 
+      background: rgba(61,232,0,0.1); 
+      border-left: 4px solid var(--green); 
+      border-radius: 0 6px 6px 0; 
+    }
+
+    /* =========================================
+       CONTEÚDO PRINCIPAL (MAIN)
+       ========================================= */
+    .main { flex-grow: 1; padding: 25px; overflow-y: auto; }
+
+    .header { 
+      text-align: right; 
+      margin-bottom: 20px; 
+      font-family: monospace; 
+      color: var(--green); 
+      font-size: 0.9rem; 
+      background: #14191d; 
+      padding: 8px 12px; 
+      border-radius: 6px; 
+      border: 1px solid var(--border); 
+      display: inline-block; 
+    }
+
+    /* Painel de Formulário */
+    .panel { 
+      background: var(--bg-card); 
+      border: 1px solid var(--border); 
+      padding: 25px; 
+      border-radius: 12px; 
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4); 
+    }
+
+    .kata-row { 
+      display: flex; 
+      align-items: center; 
+      gap: 15px; 
+      margin-bottom: 20px; 
+      padding-bottom: 10px; 
+      border-bottom: 1px solid var(--border); 
+      flex-wrap: wrap; 
+    }
+
+    .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+    
+    .col-title { 
+      background: rgba(61,232,0,0.1); 
+      color: var(--green); 
+      text-align: center; 
+      padding: 8px; 
+      font-weight: bold; 
+      font-size: 0.7rem; 
+      text-transform: uppercase; 
+      border-radius: 4px; 
+      margin-bottom: 10px; 
+    }
+
+    /* Inputs e Textareas */
+    textarea { 
+      width: 100%; 
+      height: 100px; 
+      background: #14191d; 
+      color: white; 
+      border: 1px solid var(--border); 
+      padding: 10px; 
+      border-radius: 4px; 
+      resize: none; 
+      outline: none; 
+    }
+    
+    textarea:focus { border-color: var(--green); }
+
+    .sub-label { font-size: 0.65rem; color: var(--text-dim); margin: 10px 0 5px 0; font-weight: bold; text-transform: uppercase; }
+
+    /* =========================================
+       COMPONENTES (BOTÕES E SELETORES)
+       ========================================= */
+    .btn-save { 
+      background: var(--green); 
+      color: black; 
+      border: none; 
+      padding: 12px 30px; 
+      border-radius: 6px; 
+      cursor: pointer; 
+      font-weight: bold; 
+      transition: 0.2s; 
+    }
+
+    .emotion-selector, .tend-selector { 
+      display: flex; 
+      gap: 10px; 
+      margin-bottom: 15px; 
+      background: rgba(255,255,255,0.03); 
+      padding: 10px; 
+      border-radius: 8px; 
+    }
+
+    .emotion-btn, .tend-btn { 
+      cursor: pointer; 
+      border: 2px solid transparent; 
+      border-radius: 50%; 
+      padding: 5px; 
+      transition: 0.3s; 
+      background: none; 
+    }
+
+    .emotion-btn img, .tend-btn img { width: 35px; height: 35px; filter: grayscale(100%); }
+    
+    .emotion-btn.active, .tend-btn.active { 
+      border-color: var(--green); 
+      background: rgba(61,232,0,0.1); 
+    }
+    
+    .emotion-btn.active img, .tend-btn.active img { filter: grayscale(0%); }
+
+    /* =========================================
+       SISTEMA DE CARDS (LISTAGEM)
+       ========================================= */
+    .list-grid { 
+      display: grid; 
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); 
+      gap: 20px; 
+    }
+
+    .card { 
+      background: var(--bg-card); 
+      border: 1px solid var(--border); 
+      border-top: 4px solid var(--green); 
+      padding: 20px; 
+      border-radius: 8px; 
+      display: flex;
+      flex-direction: column;
+      height: 100%; 
+      gap: 15px;
+    }
+    
+    .card-logo-top-left { 
+      height: 35px; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+    }
+
+    .card-logo-top-left img { 
+      max-height: 100%; 
+      max-width: 100%; 
+      object-fit: contain; 
+    }
+
+    .card-h-new { display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+    .card-h-left { display: flex; align-items: center; gap: 10px; }
+    .card-emotion { width: 28px; height: 28px; }
+
+    .info-label { font-size: 0.75rem; font-weight: bold; color: var(--green); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; text-transform: uppercase; }
+    
+    .info-block { background: rgba(255,255,255,0.04); padding: 12px; border-radius: 6px; border-left: 3px solid var(--green); }
+    .info-block-text { font-size: 0.9rem; color: var(--text); line-height: 1.5; white-space: pre-wrap; }
+
+    .card-footer { display: flex; gap: 10px; margin-top: auto; padding-top: 15px; border-top: 1px solid var(--border); }
+
+    /* Cores de Temperatura do Card */
+    .temp-1 { border-top-color: #4fc3f7; }
+    .temp-2 { border-top-color: #81c784; }
+    .temp-3 { border-top-color: #fff176; }
+    .temp-4 { border-top-color: #ffb74d; }
+    .temp-5 { border-top-color: #e57373; }
+
+    /* Loader */
+    .loader { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 10000; color: var(--green); }
+    .spinner { width: 40px; height: 40px; border: 4px solid #ffffff11; border-left-color: var(--green); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 10px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Botões de Ação nos Cards */
+    .btn-edit, .btn-arc { flex: 1; padding: 10px; border-radius: 4px; cursor: pointer; font-weight: bold; border: 1px solid; display: flex; justify-content: center; align-items: center; }
+    .btn-edit { background: rgba(61,232,0,0.1); color: var(--green); border-color: var(--green); }
+    .btn-arc { background: rgba(242,113,102,0.1); color: var(--danger); border-color: rgba(242,113,102,0.2); }
+    .btn-icon { width: 16px; height: 16px; margin-right: 8px; }
+  </style>
+</head>
+
+<body>
+
+  <div id="loader" class="loader">
+    <div class="spinner"></div>
+    <div id="loader-msg">Processando...</div>
+  </div>
+
+  <div class="container">
+    <aside class="sidebar">
+      <div class="logo-area">
+        <img src="https://github.com/Ferraz0Felipe/LOGOS-Montadoras/blob/main/Logos/Valeo%20logo%20branco.png?raw=true" width="60" alt="Valeo Logo">
+        <h3 style="font-size: 1rem;">KATA PORTAL</h3>
+      </div>
+      
+      <nav style="display: flex; flex-direction: column;">
+        <button onclick="prepararNovo()" id="nav-novo" class="nav-btn active">
+          <img src="https://github.com/Ferraz0Felipe/LOGOS-Montadoras/blob/main/ICONES/NOVO.png?raw=true" class="btn-icon"> Novo Kata
+        </button>
+        <button onclick="carregarAndamento()" id="nav-andamento" class="nav-btn">
+          <img src="https://github.com/Ferraz0Felipe/LOGOS-Montadoras/blob/main/ICONES/PREENCHIDO%20(1).png?raw=true" class="btn-icon"> Em Andamento
+        </button>
+        <button onclick="carregarArquivados()" id="nav-arquivado" class="nav-btn">
+          <img src="https://github.com/Ferraz0Felipe/LOGOS-Montadoras/blob/main/ICONES/ARQUIVAR.png?raw=true" class="btn-icon"> Arquivados
+        </button>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <div id="relogio" class="header"></div>
+
+      <section id="pag-novo">
+        <div class="panel">
+          <div class="kata-row">
+            <select id="montadora" style="background:#14191d; color:white; border:1px solid var(--border); padding:8px; border-radius:4px;">
+              <option value="VW">VW</option>
+              <option value="Renault">Renault</option>
+              <option value="GM">GM</option>
+              <option value="Hyundai">Hyundai</option>
+              <option value="Stellantis">Stellantis</option>
+              <option value="Toyota">Toyota</option>
+            </select>
+            <input type="text" id="challenge" placeholder="Desafio Atual..." style="flex-grow:1; background:none; border:none; border-bottom:2px solid var(--border); color:white; padding:8px; outline:none; font-size:1rem;">
+            <input type="text" id="contato" placeholder="Responsável/Contato" style="width:200px; background:none; border:none; border-bottom:2px solid var(--border); color:white; padding:8px; outline:none; font-size:0.9rem;">
+            <input type="url" id="linkDrive" placeholder="Link Google Drive" style="width:200px; background:none; border:none; border-bottom:2px solid var(--border); color:white; padding:8px; outline:none; font-size:0.9rem;">
+          </div>
+
+          <div class="sub-label">Como o cliente se sente neste desafio?</div>
+          <div class="emotion-selector" id="emotion-picker">
+            <button class="emotion-btn active" onclick="selectEmotion(1)" data-v="1"><img src="https://github.com/Ferraz0Felipe/LOGOS-Montadoras/blob/main/emo%C3%A7%C3%B5es/Feliz.png?raw=true"></button>
+            <button class="emotion-btn" onclick="selectEmotion(2)" data-v="2"><img src="https://github.com/Ferraz0Felipe/LOGOS-Montadoras/blob/main/emo%C3%A7%C3%B5es/Indiferente.png?raw=true"></button>
+            <button class="emotion-btn" onclick="selectEmotion(3)" data-v="3"><img src="https://github.com/Ferraz0Felipe/LOGOS-Montadoras/blob/main/emo%C3%A7%C3%B5es/Indecifr%C3%A1vel.png?raw=true"></button>
+            <button class="emotion-btn" onclick="selectEmotion(4)" data-v="4"><img src="https://github.com/Ferraz0Felipe/LOGOS-Montadoras/blob/main/emo%C3%A7%C3%B5es/Desconfiado.png?raw=true"></button>
+            <button class="emotion-btn" onclick="selectEmotion(5)" data-v="5"><img src="https://github.com/Ferraz0Felipe/LOGOS-Montadoras/blob/main/emo%C3%A7%C3%B5es/Bravo.png?raw=true"></button>
+          </div>
+          <input type="hidden" id="temp-value" value="1">
+
+          <div class="sub-label">Qual a tendência deste desafio?</div>
+          <div class="tend-selector" id="tend-picker">
+            <button class="tend-btn active" onclick="selectTend(1)" data-v="1"><img src="https://raw.githubusercontent.com/Ferraz0Felipe/LOGOS-Montadoras/main/ICONES/TREND%20NEUTRA.svg"></button>
+            <button class="tend-btn" onclick="selectTend(2)" data-v="2"><img src="https://raw.githubusercontent.com/Ferraz0Felipe/LOGOS-Montadoras/main/ICONES/TREND%20POSITIVA.svg"></button>
+            <button class="tend-btn" onclick="selectTend(3)" data-v="3"><img src="https://raw.githubusercontent.com/Ferraz0Felipe/LOGOS-Montadoras/main/ICONES/TREND%20NEGATIVA.svg"></button>
+          </div>
+          <input type="hidden" id="tend-value" value="1">
+
+          <div class="grid">
+            <div>
+              <div class="col-title">Current</div>
+              <div class="sub-label">OUTCOME</div><textarea id="outAtu"></textarea>
+              <div class="sub-label">CONDITIONS</div><textarea id="condAtu"></textarea>
+            </div>
+            <div>
+              <div class="col-title">Target</div>
+              <div class="sub-label">OUTCOME</div><textarea id="outAlv"></textarea>
+              <div class="sub-label">CONDITIONS</div><textarea id="condAlv"></textarea>
+            </div>
+            <div>
+              <div class="col-title">Execution</div>
+              <div class="sub-label">NEXT STEP</div><textarea id="step"></textarea>
+              <div class="sub-label">OBSTACLES</div><textarea id="obst"></textarea>
+              <div class="sub-label">ESTRATÉGIA</div><textarea id="estrat"></textarea>
+            </div>
+          </div>
+          
+          <div style="text-align:right; margin-top:20px;">
+            <button id="btn-save" class="btn-save" onclick="salvar()">REGISTRAR KATA</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="pag-lista" style="display:none">
+        <h2 id="tit-lista" style="margin-bottom:20px; color:var(--green)">Cartões em Andamento</h2>
+        <div id="cont-lista" class="list-grid"></div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    /**
+     * VARIÁVEIS GLOBAIS
+     */
+    let editandoId = null; 
+    let listaAtual = [];
+
+    /**
+     * UTILITÁRIOS DE UI
+     */
+    function loading(show) { 
+      document.getElementById("loader").style.display = show ? "flex" : "none"; 
+    }
+
+    function nav(pageId) {
+      document.getElementById("pag-novo").style.display = (pageId == "novo" ? "block" : "none");
+      document.getElementById("pag-lista").style.display = (pageId == "lista" ? "block" : "none");
+      
+      // Atualiza estado visual dos botões do menu
+      document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
+      if (pageId == "novo") document.getElementById("nav-novo").classList.add("active");
+    }
+
+    // Seleção de Emoções (Emoji do Cliente)
+    function selectEmotion(valor) {
+      document.getElementById("temp-value").value = valor;
+      document.querySelectorAll(".emotion-btn").forEach(btn => {
+        btn.classList.toggle("active", btn.getAttribute("data-v") == valor);
+      });
+    }
+
+    // Seleção de Tendência (Seta de Tendência)
+    function selectTend(valor) {
+      document.getElementById("tend-value").value = valor;
+      document.querySelectorAll(".tend-btn").forEach(btn => {
+        btn.classList.toggle("active", btn.getAttribute("data-v") == valor);
+      });
+    }
+
+    /**
+     * LÓGICA DE FORMULÁRIO (SALVAR / EDITAR)
+     */
+    function prepararNovo() {
+      editandoId = null;
+      document.getElementById("btn-save").innerText = "REGISTRAR KATA";
+      // Limpeza de Campos
+      ["challenge", "contato", "linkDrive", "outAtu", "condAtu", "outAlv", "condAlv", "step", "obst", "estrat"].forEach(id => {
+        document.getElementById(id).value = "";
+      });
+      selectEmotion(1);
+      selectTend(1); 
+      nav('novo');
+    }
+
+    function salvar() {
+      loading(true);
+      const payload = {
+        id: editandoId,
+        montadora: document.getElementById("montadora").value,
+        challenge: document.getElementById("challenge").value,
+        contato: document.getElementById("contato").value,
+        linkDrive: document.getElementById("linkDrive").value,
+        temp: document.getElementById("temp-value").value,
+        outcomeAtual: document.getElementById("outAtu").value,
+        condicoesAtuais: document.getElementById("condAtu").value,
+        outcomeAlvo: document.getElementById("outAlv").value,
+        condicoesAlvo: document.getElementById("condAlv").value,
+        proxPasso: document.getElementById("step").value,
+        obstaculos: document.getElementById("obst").value,
+        tend: document.getElementById("tend-value").value,
+        estrat: document.getElementById("estrat").value
+      };
+      
+      const functionName = editandoId ? 'editarCartao' : 'salvarCartao';
+      
+      google.script.run
+        .withSuccessHandler(() => {
+          loading(false); 
+          prepararNovo(); 
+          carregarAndamento();
+        })
+        .withFailureHandler((err) => {
+          loading(false); 
+          alert("Erro ao salvar: " + err);
+        })[functionName](payload);
+    }
+
+    function editar(id) {
+      const k = listaAtual.find(c => c.linhaId === id);
+      if (!k) return;
+      
+      editandoId = id;
+      document.getElementById("btn-save").innerText = "ATUALIZAR KATA";
+      
+      document.getElementById("montadora").value = k.montadora;
+      document.getElementById("challenge").value = k.challenge;
+      document.getElementById("contato").value = k.contato;
+      document.getElementById("linkDrive").value = k.linkDrive || "";
+      document.getElementById("outAtu").value = k.outcomeAtual;
+      document.getElementById("condAtu").value = k.condicoesAtuais;
+      document.getElementById("outAlv").value = k.outcomeAlvo;
+      document.getElementById("condAlv").value = k.condicoesAlvo;
+      document.getElementById("step").value = k.proxPasso;
+      document.getElementById("obst").value = k.obstaculos;
+      document.getElementById("estrat").value = k.estrat; 
+      
+      selectEmotion(k.temp); 
+      selectTend(k.tend); 
+      nav('novo');
+    }
+
+    /**
+     * LÓGICA DE LISTAGEM E RENDERIZAÇÃO
+     */
+    function carregarAndamento() {
+      loading(true); 
+      nav("lista");
+      document.getElementById("tit-lista").innerText = "Cartões em Andamento";
+      document.getElementById("nav-andamento").classList.add("active");
+      
+      google.script.run.withSuccessHandler(res => {
+        listaAtual = res || [];
+        document.getElementById("cont-lista").innerHTML = res.map(c => montarCard(c, true)).join('');
+        loading(false);
+      }).listarCartoes("Andamento");
+    }
+
+    function carregarArquivados() {
+      loading(true); 
+      nav("lista");
+      document.getElementById("tit-lista").innerText = "Arquivo de Cartões";
+      document.getElementById("nav-arquivado").classList.add("active");
+      
+      google.script.run.withSuccessHandler(res => {
+        document.getElementById("cont-lista").innerHTML = res.map(c => montarCard(c, false)).join('');
+        loading(false);
+      }).listarCartoes("Arquivado");
+    }
+
+    function arquivar(id) {
+      if(confirm("Deseja realmente arquivar este cartão?")) {
+        loading(true);
+        google.script.run.withSuccessHandler(() => carregarAndamento()).arquivarCartao(id);
+      }
+    }
+
+    /**
+     * TEMPLATE DO CARD
+     */
+    function montarCard(c, isAndamento) {
+      const logos = {
+        "VW": "https://github.com/Ferraz0Felipe/LOGOS-Montadoras/blob/main/Logos/VW%20logo%20branco1.png?raw=true",
+        "Renault": "https://github.com/Ferraz0Felipe/LOGOS-Montadoras/blob/main/Logos/RN%20logo%20branco1.png?raw=true",
+        "GM": "https://github.com/Ferraz0Felipe/LOGOS-Montadoras/blob/main/Logos/GM%20logo%20branco1.png?raw=true",
+        "Stellantis": "https://github.com/Ferraz0Felipe/LOGOS-Montadoras/blob/main/Logos/STLA%20logo%20branco1.png?raw=true",
+        "Toyota": "https://github.com/Ferraz0Felipe/LOGOS-Montadoras/blob/main/Logos/TYT%20logo%20branco1.png?raw=true",
+        "Hyundai":"https://github.com/Ferraz0Felipe/LOGOS-Montadoras/blob/main/Logos/HBM%20logo%20branco1.png?raw=true"
+      };
+
+      const emocoes = {
+        1: "https://github.com/Ferraz0Felipe/LOGOS-Montadoras/blob/main/emo%C3%A7%C3%B5es/Feliz.png?raw=true",
+        2: "https://github.com/Ferraz0Felipe/LOGOS-Montadoras/blob/main/emo%C3%A7%C3%B5es/Indiferente.png?raw=true",
+        3: "https://github.com/Ferraz0Felipe/LOGOS-Montadoras/blob/main/emo%C3%A7%C3%B5es/Indecifr%C3%A1vel.png?raw=true",
+        4: "https://github.com/Ferraz0Felipe/LOGOS-Montadoras/blob/main/emo%C3%A7%C3%B5es/Desconfiado.png?raw=true",
+        5: "https://github.com/Ferraz0Felipe/LOGOS-Montadoras/blob/main/emo%C3%A7%C3%B5es/Bravo.png?raw=true"
+      };
+
+      const tends = {
+        1: "https://raw.githubusercontent.com/Ferraz0Felipe/LOGOS-Montadoras/main/ICONES/TREND%20NEUTRA.svg",
+        2: "https://raw.githubusercontent.com/Ferraz0Felipe/LOGOS-Montadoras/main/ICONES/TREND%20POSITIVA.svg",
+        3: "https://raw.githubusercontent.com/Ferraz0Felipe/LOGOS-Montadoras/main/ICONES/TREND%20NEGATIVA.svg"
+      };
+
+      const imgEstrat = "https://raw.githubusercontent.com/Ferraz0Felipe/LOGOS-Montadoras/main/ICONES/estrategia.svg";
+      const imgPasso = "https://raw.githubusercontent.com/Ferraz0Felipe/LOGOS-Montadoras/main/ICONES/PASSO.svg";
+      const botaoDrive = c.linkDrive ? `
+        <a href="${c.linkDrive}" target="_blank" title="Abrir Pasta Drive" style="display: flex; align-items: center;">
+          <img src="https://raw.githubusercontent.com/Ferraz0Felipe/LOGOS-Montadoras/920e1ad5adf8a92d1d6c6658adc0aeb4ddb470fb/ICONES/drive.svg" class="card-emotion" style="margin-left: 5px; filter: hue-rotate(90deg) brightness(1.5);"> 
+        </a>` : '';
+
+      return `
+        <div class="card temp-${c.temp}">
+          <div class="card-h-new">
+            <div class="card-h-left">
+              <div class="card-logo-top-left">
+                <img src="${logos[c.montadora] || ''}" title="${c.montadora}" onerror="this.style.visibility='hidden'">
+              </div>
+              <img src="${emocoes[c.temp] || emocoes[1]}" class="card-emotion" title="Satisfação do cliente">
+              <img src="${tends[c.tend] || tends[1]}" class="card-emotion" style="margin-left: 5px;" title="Tendência">
+              ${botaoDrive}
+            </div>
+            <span style="font-size:0.8rem; color:var(--text-dim); font-weight:bold;">${tempoDelta(c.data)}</span>
+          </div>
+          
+          <div class="card-body">
+            <div>
+              <div style="font-size: 1.15rem; color: var(--green); font-weight: bold; margin-bottom: 5px;">
+                ${c.challenge || 'SEM DESAFIO'}
+              </div>
+              <div style="font-size: 0.85rem; color:var(--text-dim); display:flex; align-items:center; gap:6px;"> 
+                <img src="https://github.com/Ferraz0Felipe/LOGOS-Montadoras/blob/main/ICONES/CONTATO.png?raw=true" width="14" height="14"> 
+                Responsável: ${c.contato || 'N/A'}
+              </div>
+            </div>
+
+            <div class="info-section">
+              <div class="info-label"><img src="${imgEstrat}" width="14"> Estratégia</div>
+              <div class="info-block"><div class="info-block-text">${c.estrat || '-'}</div></div>
+            </div>
+            
+            <div class="info-section">
+              <div class="info-label" style="color: #4fc3f7;"><img src="${imgPasso}" width="14"> Próximos Passos</div>
+              <div class="info-block" style="border-left-color: #4fc3f7;"><div class="info-block-text">${c.proxPasso || '-'}</div></div>
+            </div>
+          </div>
+
+          <div class="card-footer">
+            <button class="btn-edit" onclick="editar(${c.linhaId})">Editar</button>
+            ${isAndamento ? `<button class="btn-arc" onclick="arquivar(${c.linhaId})">Arquivar</button>` : ''}
+          </div>
+        </div>`;
+    }
+
+    // Calcula a diferença de dias para o selo no card
+    function tempoDelta(data){
+      if(!data) return "-";
+      const diff = Math.floor(Math.abs(new Date() - new Date(data)) / (1000 * 60 * 60 * 24));
+      return diff === 0 ? "Hoje" : (diff === 1 ? "1 dia" : `${diff} dias`);
+    }
+
+    // Inicialização
+    setInterval(() => { document.getElementById("relogio").innerText = new Date().toLocaleString(); }, 1000);
+    window.onload = carregarAndamento;
+  </script>
+</body>
+</html>
